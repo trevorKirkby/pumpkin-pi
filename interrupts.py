@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import time
+import random
 import RPi.GPIO as GPIO  
 import pygame
 
@@ -17,11 +18,20 @@ GPIO.setmode(GPIO.BCM)
 
 # configure LED output
 GPIO.setup(4, GPIO.OUT)
+GPIO.output(4,0)
 
 # configure switch inputs
 for pin in (23,24,25,26):
 	GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 time.sleep(1)
+
+def lightning(nflashes = 5):
+	for flashes in range(nflashes):
+		delay = random.randint(5,30)
+		time.sleep(0.01*delay)
+		GPIO.output(4,1)
+		time.sleep(0.01)
+		GPIO.output(4,0)
 
 def floorswitch(channel):
 	print 'floorswitch pressed! %r' % channel
@@ -30,6 +40,7 @@ def floorswitch(channel):
 def doorbell(channel):
 	print 'doorbell pressed! %r' % channel
 	thunder.play()
+	lightning()
 
 # add switch interrupt handlers
 GPIO.add_event_detect(23, GPIO.RISING, callback = floorswitch)
