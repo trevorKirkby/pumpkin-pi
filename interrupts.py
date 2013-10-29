@@ -51,6 +51,8 @@ def floorswitch(channel):
 	print 'floorswitch pressed! %r' % channel
 	# is the background soundtrack playing yet?
 	if not pygame.mixer.music.get_busy():
+		# turn the porch light off
+		GPIO.output(4,0)
 		# start the background soundtrack now
 		pygame.mixer.music.play()
 	# otherwise, is the wolf sound effect already playing?
@@ -73,14 +75,23 @@ GPIO.add_event_detect(23, GPIO.RISING, callback = floorswitch)
 GPIO.add_event_detect(24, GPIO.RISING, callback = floorswitch)
 GPIO.add_event_detect(25, GPIO.RISING, callback = doorbell)
 
+# turn on the light
+GPIO.output(4,1)
+
 # go into main loop, waiting for control-C
 try:
 	while True:
 		time.sleep(1)
-		# restart the background music if any switches were recently active
 		musicPlaying = pygame.mixer.music.get_busy()
-		if not musicPlaying and idle < 30:
-			pygame.mixer.music.play()
+		if not musicPlaying:
+			if idle < 30:
+				# turn the porch light off
+				GPIO.output(4,0)
+				# restart the background music if any switches were recently active		
+				pygame.mixer.music.play()
+			else:
+				# turn the porch light on
+				GPIO.output(4,1)
 		# print a periodic update
 		print 'tick',idle,musicPlaying,wolfChannel.get_busy(),thunderChannel.get_busy()
 		# update our idle counter
