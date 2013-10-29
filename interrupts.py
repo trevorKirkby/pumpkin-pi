@@ -8,10 +8,15 @@ import pygame
 # initialize pygame sound
 pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 pygame.init()
+print 'using ',pygame.mixer.get_num_channels(),' audio channels'
 
 # load the sound effects we will use
 wolf = pygame.mixer.Sound("soundeffects/WolfCry.wav")
 thunder = pygame.mixer.Sound("soundeffects/Thundercrack.wav")
+
+# give each effect its own channel
+wolfChannel = pygame.mixer.Channel(5)
+thunderChannel = pygame.mixer.Channel(6)
 
 # initialize GPIO
 GPIO.setmode(GPIO.BCM)
@@ -35,12 +40,14 @@ def lightning(nflashes = 5):
 
 def floorswitch(channel):
 	print 'floorswitch pressed! %r' % channel
-	wolf.play()
+	if not wolfChannel.get_busy():
+		wolfChannel.play(wolf)
 
 def doorbell(channel):
 	print 'doorbell pressed! %r' % channel
-	thunder.play()
-	lightning()
+	if not thunderChannel.get_busy():
+		thunderChannel.play(thunder)
+		lightning()
 
 # add switch interrupt handlers
 GPIO.add_event_detect(23, GPIO.RISING, callback = floorswitch)
@@ -51,7 +58,7 @@ GPIO.add_event_detect(25, GPIO.RISING, callback = doorbell)
 try:
 	while True:
 		time.sleep(1)
-		print 'tick'
+		print 'tick',wolfChannel.get_busy(),thunderChannel.get_busy()
 except KeyboardInterrupt:
 	print 'bye'
 
