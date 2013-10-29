@@ -12,10 +12,13 @@ print 'using ',pygame.mixer.get_num_channels(),' audio channels'
 
 # load our streaming background soundtrack
 pygame.mixer.music.load("soundeffects/HalloweenBackgroundLoopNew.mp3")
+pygame.mixer.music.set_volume(0.5)
 
 # load the sound effects we will use
 wolf = pygame.mixer.Sound("soundeffects/WolfCry.wav")
 thunder = pygame.mixer.Sound("soundeffects/Thundercrack.wav")
+wolf.set_volume(1.0)
+thunder.set_volume(1.0)
 
 # give each effect its own channel
 wolfChannel = pygame.mixer.Channel(5)
