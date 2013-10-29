@@ -10,6 +10,9 @@ pygame.mixer.pre_init(frequency=22050, size=-16, channels=2, buffer=1024)
 pygame.init()
 print 'using ',pygame.mixer.get_num_channels(),' audio channels'
 
+# load our streaming background soundtrack
+pygame.mixer.music.load("soundeffects/HalloweenBackgroundLoopNew.mp3")
+
 # load the sound effects we will use
 wolf = pygame.mixer.Sound("soundeffects/WolfCry.wav")
 thunder = pygame.mixer.Sound("soundeffects/Thundercrack.wav")
@@ -30,6 +33,9 @@ for pin in (23,24,25,26):
 	GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 time.sleep(1)
 
+# define a global idle counter
+idle = 0
+
 def lightning(nflashes = 5):
 	for flashes in range(nflashes):
 		delay = random.randint(5,30)
@@ -40,8 +46,16 @@ def lightning(nflashes = 5):
 
 def floorswitch(channel):
 	print 'floorswitch pressed! %r' % channel
-	if not wolfChannel.get_busy():
+	# is the background soundtrack playing yet?
+	if not pygame.mixer.music.get_busy():
+		# start the background soundtrack now
+		pygame.mixer.music.play()
+	# otherwise, is the wolf sound effect already playing?
+	elif not wolfChannel.get_busy():
+		# start the wolf sound effect now
 		wolfChannel.play(wolf)
+	# always reset our idle counter
+	idle = 0
 
 def doorbell(channel):
 	print 'doorbell pressed! %r' % channel
@@ -58,7 +72,9 @@ GPIO.add_event_detect(25, GPIO.RISING, callback = doorbell)
 try:
 	while True:
 		time.sleep(1)
-		print 'tick',wolfChannel.get_busy(),thunderChannel.get_busy()
+		print 'tick',idle,pygame.mixer.music.get_busy(),wolfChannel.get_busy(),thunderChannel.get_busy()
+		# update our idle counter
+		idle += 1
 except KeyboardInterrupt:
 	print 'bye'
 
