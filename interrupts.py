@@ -36,8 +36,8 @@ for pin in (23,24,25,26):
 	GPIO.setup(pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 time.sleep(1)
 
-# define a global idle counter
-idle = 0
+# define a global idle counter, initialized to a large value
+idle = 1000
 
 def lightning(nflashes = 5):
 	for flashes in range(nflashes):
@@ -65,6 +65,8 @@ def doorbell(channel):
 	if not thunderChannel.get_busy():
 		thunderChannel.play(thunder)
 		lightning()
+	# always reset our idle counter
+	idle = 0
 
 # add switch interrupt handlers
 GPIO.add_event_detect(23, GPIO.RISING, callback = floorswitch)
@@ -75,7 +77,12 @@ GPIO.add_event_detect(25, GPIO.RISING, callback = doorbell)
 try:
 	while True:
 		time.sleep(1)
-		print 'tick',idle,pygame.mixer.music.get_busy(),wolfChannel.get_busy(),thunderChannel.get_busy()
+		# restart the background music if any switches were recently active
+		musicPlaying = pygame.mixer.music.get_busy()
+		if not musicPlaying and idle < 30:
+			pygame.mixer.music.play()
+		# print a periodic update
+		print 'tick',idle,musicPlaying,wolfChannel.get_busy(),thunderChannel.get_busy()
 		# update our idle counter
 		idle += 1
 except KeyboardInterrupt:
